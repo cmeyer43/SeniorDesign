@@ -5,7 +5,7 @@ brakeZone::brakeZone(unsigned int *lines, unsigned int numLines):
 {
 }
 
-int brakeZone::brakeZoneInit()
+int brakeZone::init()
 {
     req = request_input_lines("/dev/gpiochip0", sensorLines , numSensors , "watch-multiple-line-values");
     eventBuff =  gpiod_edge_event_buffer_new(numSensors );
@@ -23,6 +23,13 @@ void brakeZone::updateState()
     for (int i = 0; i < ret; i++)
     {
         event = gpiod_edge_event_buffer_get_event(eventBuff,i);
+        if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[0])
+        {
+            state = ENTERED;
+        } else if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[1])
+        {
+            state = EXITED;
+        }
         printf("offset: %d  event #%ld\n",
                gpiod_edge_event_get_line_offset((gpiod_edge_event*)event),
                gpiod_edge_event_get_line_seqno((gpiod_edge_event*)event));

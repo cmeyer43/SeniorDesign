@@ -11,8 +11,10 @@ typedef enum
 
 typedef enum
 {
-    INZONE = 0,
-    OUTZONE
+    ENTERING = 0,
+    ENTERED,
+    EXITING,
+    EXITED
 } zone_state_t;
 
 #endif
