@@ -1,8 +1,9 @@
 #include "brakeZone.h"
 
-brakeZone::brakeZone(unsigned int *lines, unsigned int numLines):
-    numSensors(numLines), sensorLines(lines)
+brakeZone::brakeZone(unsigned int *lines, uint8_t state):
+    numSensors(numLines)
 {
+    this->state = state;
 }
 
 int brakeZone::init()
@@ -25,13 +26,30 @@ void brakeZone::updateState()
         event = gpiod_edge_event_buffer_get_event(eventBuff,i);
         if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[0])
         {
-            state = ENTERED;
+            if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_RISING_EDGE)
+            {
+                state = ENTERING;
+            } else if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_FALLING_EDGE)
+            {
+                state = ENTERED;
+            }
         } else if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[1])
         {
-            state = EXITED;
+            if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_RISING_EDGE)
+            {
+                state = EXITING;
+            } else if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_FALLING_EDGE)
+            {
+                state = EMPTY;
+            }
         }
         printf("offset: %d  event #%ld\n",
                gpiod_edge_event_get_line_offset((gpiod_edge_event*)event),
                gpiod_edge_event_get_line_seqno((gpiod_edge_event*)event));
     }
+}
+
+zone_state_t brakeZone::getState()
+{
+    return state;
 }

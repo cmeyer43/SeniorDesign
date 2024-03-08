@@ -14,7 +14,7 @@ typedef enum
     ENTERING = 0,
     ENTERED,
     EXITING,
-    EXITED
+    EMPTY
 } zone_state_t;
 
 #endif

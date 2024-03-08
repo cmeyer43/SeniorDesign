@@ -7,13 +7,15 @@
 #include <thread>
 
 unsigned int bz1Sensors[2] = {16,17};
-brakeZone bz1(bz1Sensors, 2);
+brakeZone bz1(bz1Sensors, 2, ENTERED);
 unsigned int bz2Sensors[2] = {18,19};
-brakeZone bz2(bz2Sensors, 2);
+brakeZone bz2(bz2Sensors, 2, ENTERED);
 unsigned int bz3Sensors[2] = {20,21};
-brakeZone bz3(bz3Sensors, 2);
+brakeZone bz3(bz3Sensors, 2, ENTERED);
 unsigned int bz4Sensors[2] = {22,23};
-brakeZone bz4(bz4Sensors, 2);
+brakeZone bz4(bz4Sensors, 2, EMPTY);
+unsigned int bz5Sensors[2] = {22,23};
+brakeZone bz5(bz5Sensors, 2, EMPTY);
 
 serial ser("/dev/ttyAMA0");
 
@@ -23,6 +25,7 @@ void brakeZoneWork()
     bz2.updateState();
     bz3.updateState();
     bz4.updateState();
+    b5z.updateState();
 }
 
 int main()
@@ -34,6 +37,7 @@ int main()
     err += bz2.init();
     err += bz3.init();
     err += bz4.init();
+    err += bz5.init();
 
     if (err != 0)
     {

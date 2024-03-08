@@ -24,7 +24,8 @@ struct gpiod_line_request* request_input_lines(const char *chip_path, const unsi
 
 	gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_INPUT);
     gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_INPUT);
-	gpiod_line_settings_set_edge_detection(settings, GPIOD_LINE_EDGE_RISING);
+	//gpiod_line_settings_set_edge_detection(settings, GPIOD_LINE_EDGE_RISING);
+	gpiod_line_settings_set_edge_detection(settings, GPIOD_LINE_EDGE_BOTH);
 	/* Assume a button connecting the pin to ground, so pull it up... */
 	gpiod_line_settings_set_bias(settings, GPIOD_LINE_BIAS_PULL_UP);
 	/* ... and provide some debounce. */
