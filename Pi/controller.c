@@ -20,11 +20,13 @@ serial ser("/dev/ttyAMA0");
 
 void brakeZoneWork()
 {
+    printf("poll\n");
     bz1.updateState();
     bz2.updateState();
     bz3.updateState();
     bz4.updateState();
     state = ser.updateCoasterState();
+    printf("%d\n", state);
 
 }
 
@@ -43,6 +45,8 @@ int main()
     }
 
     std::thread breakZoneThread(brakeZoneWork);
+
+    breakZoneThread.join();
 
     return 0;
 }

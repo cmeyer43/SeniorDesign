@@ -8,11 +8,13 @@ class serial
 public:
     serial(char *device);
 
+    ~serial();
+
     int sendPacket(uint8_t* packet, int size);
 
     int recvPacket(uint8_t* packet, int size);
 
-    control_state_t updateCoasterState();
+    uint8_t updateCoasterState();
 private:
     int dev;
 };

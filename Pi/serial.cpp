@@ -23,10 +23,10 @@
 
 serial::serial(char *device)
 {
-    dev = open(device, O_RDWR | O_NOCTTY);
+    dev = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY);
     if(dev < 0)
     {
-      printf("failed to open");
+      printf("failed to open\n");
     }
 
     // Set attributes
@@ -45,12 +45,21 @@ serial::serial(char *device)
     tcflush(dev, TCIOFLUSH);
     tcsetattr(dev, TCSANOW, &options);
 }
+
+serial::~serial()
+{
+    close(dev);
+}
   
 int serial::sendPacket(uint8_t *msg, int size)
 {
-    if (write(dev,msg,1) != size)
+    while(1)
     {
-        return 1;
+        printf("send\n");
+        if (write(dev,msg,1) != size)
+        {
+            return 1;
+        }
     }
     return 0;
 }
@@ -58,21 +67,34 @@ int serial::sendPacket(uint8_t *msg, int size)
 int serial::recvPacket(uint8_t *msg, int size)
 {
     // read response
-    int sizeRead = read(dev, msg, size);
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(dev, &rfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 10000;
+
+    int sizeRead = 0;
+    int stat = select(dev + 1, &rfds, NULL, NULL, &timeout);
+    if (stat > 0)
+    {
+        sizeRead = read(dev, msg, size);
+    }
     return sizeRead;
 }
 
-control_state_t serial::updateCoasterState()
+uint8_t serial::updateCoasterState()
 {
-    uint8_t msg[40];
+    uint8_t msg[5] = {1,2,3,4,5};
     msg[0] = {REQUEST_BUTTON_STATE};
-    this->sendPacket(msg, 1);
+    this->sendPacket(msg, 5);
     int sendBytes = 40;
     int recieved = this->recvPacket(msg, 40);
     if (msg[0] == SEND_BUTTON_STATE)
     {
         return msg[1];
     }
-    return NULL;
+    return -1;
 }
 

@@ -1,6 +1,6 @@
 #include "brakeZone.h"
 
-brakeZone::brakeZone(unsigned int *lines, zone_state_t state)
+brakeZone::brakeZone(unsigned int *lines, uint8_t state)
 {
     this->state = state;
     this->sensorLines[0] = lines[0];
@@ -50,7 +50,7 @@ void brakeZone::updateState()
     }
 }
 
-zone_state_t brakeZone::getState()
+uint8_t brakeZone::getState()
 {
     return state;
 }
