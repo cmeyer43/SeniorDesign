@@ -23,7 +23,7 @@
 
 serial::serial(char *device)
 {
-    dev = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY);
+    dev = open(device, O_RDWR | O_NOCTTY);
     if(dev < 0)
     {
       printf("failed to open\n");
@@ -53,13 +53,9 @@ serial::~serial()
   
 int serial::sendPacket(uint8_t *msg, int size)
 {
-    while(1)
+    if (write(dev,msg,1) != size)
     {
-        printf("send\n");
-        if (write(dev,msg,1) != size)
-        {
-            return 1;
-        }
+        return 1;
     }
     return 0;
 }
@@ -86,11 +82,11 @@ int serial::recvPacket(uint8_t *msg, int size)
 
 uint8_t serial::updateCoasterState()
 {
-    uint8_t msg[5] = {1,2,3,4,5};
+    uint8_t msg[5];
     msg[0] = {REQUEST_BUTTON_STATE};
     this->sendPacket(msg, 5);
     int sendBytes = 40;
-    int recieved = this->recvPacket(msg, 40);
+    int recieved = this->recvPacket(msg, 5);
     if (msg[0] == SEND_BUTTON_STATE)
     {
         return msg[1];

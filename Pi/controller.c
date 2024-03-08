@@ -16,22 +16,44 @@ unsigned int bz4Sensors[2] = {22,23};
 brakeZone bz4(bz4Sensors, EMPTY);
 uint8_t state = STOP;
 
-serial ser("/dev/ttyAMA0");
 
-void brakeZoneWork()
+
+void brakeZoneWork(serial ser)
 {
-    printf("poll\n");
-    bz1.updateState();
-    bz2.updateState();
-    bz3.updateState();
-    bz4.updateState();
-    state = ser.updateCoasterState();
-    printf("%d\n", state);
+    while (1)
+    {
+        //bz1.updateState();
+        //bz2.updateState();
+        //bz3.updateState();
+        //bz4.updateState();
+        uint8_t tmpState = ser.updateCoasterState();
+        state = tmpState != 255 ? tmpState : state;
+        printf("state is %u\n", state);
+        if (state == MANUAL)
+        {
+            // Send if allowed to go
+            continue;
+        } else if (state == OFF)
+        {
+            // Do nothing
+            continue;
+        } else if (state == MAITNENCE)
+        {
+            // Not sure
+            continue;
+        } else if (state == AUTOMATIC)
+        {
+            // logic
+            continue;
+        }
+    }
 
 }
 
+
 int main()
 {
+    serial ser("/dev/ttyAMA0");
     int err = 0;
 
     err += bz1.init();
@@ -44,9 +66,10 @@ int main()
         return err;
     }
 
-    std::thread breakZoneThread(brakeZoneWork);
+    std::thread breakZoneThread(brakeZoneWork, ser);
 
     breakZoneThread.join();
 
     return 0;
 }
+

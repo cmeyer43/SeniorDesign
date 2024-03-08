@@ -16,14 +16,17 @@ int brakeZone::init()
 
 void brakeZone::updateState()
 {
+    printf("get ret\n");
     int ret = gpiod_line_request_read_edge_events(req , eventBuff ,
 							  2);
+    printf("ret\n");
     if (ret == -1)
     {
         printf("error reading edge events\n");
     }
     for (int i = 0; i < ret; i++)
     {
+        printf("in loop");
         event = gpiod_edge_event_buffer_get_event(eventBuff,i);
         if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[0])
         {
