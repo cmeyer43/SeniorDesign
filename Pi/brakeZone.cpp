@@ -1,22 +1,23 @@
 #include "brakeZone.h"
 
-brakeZone::brakeZone(unsigned int *lines, uint8_t state):
-    numSensors(numLines)
+brakeZone::brakeZone(unsigned int *lines, zone_state_t state)
 {
     this->state = state;
+    this->sensorLines[0] = lines[0];
+    this->sensorLines[1] = lines[1];
 }
 
 int brakeZone::init()
 {
-    req = request_input_lines("/dev/gpiochip0", sensorLines , numSensors , "watch-multiple-line-values");
-    eventBuff =  gpiod_edge_event_buffer_new(numSensors );
+    req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values");
+    eventBuff =  gpiod_edge_event_buffer_new(2);
     return 0;
 }
 
 void brakeZone::updateState()
 {
     int ret = gpiod_line_request_read_edge_events(req , eventBuff ,
-							  numSensors );
+							  2);
     if (ret == -1)
     {
         printf("error reading edge events\n");

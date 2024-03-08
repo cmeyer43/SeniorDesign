@@ -11,7 +11,7 @@
 class brakeZone
 {
 public:
-    brakeZone(unsigned int *lines, uint8_t State);
+    brakeZone(unsigned int *lines, zone_state_t State);
 
     int init();
 
@@ -19,7 +19,7 @@ public:
 
     zone_state_t getState();
 private:
-    const unsigned int sensorLines[2];
+    unsigned int sensorLines[2];
     struct gpiod_edge_event_buffer *eventBuff;
     struct  gpiod_line_request *req;
     struct gpiod_edge_event *event;

@@ -16,7 +16,10 @@
 #include <termios.h>
 #include <string.h>
 #include <stdarg.h>
+#include <cstdint>
+#include <stdint.h>
 #include "serial.h"
+#include "messages.h"
 
 serial::serial(char *device)
 {
@@ -43,7 +46,7 @@ serial::serial(char *device)
     tcsetattr(dev, TCSANOW, &options);
 }
   
-int serial::sendPacket(char *msg, int &size)
+int serial::sendPacket(uint8_t *msg, int size)
 {
     if (write(dev,msg,1) != size)
     {
@@ -52,9 +55,24 @@ int serial::sendPacket(char *msg, int &size)
     return 0;
 }
 
-int serial::recvPacket(char *msg, int &size)
+int serial::recvPacket(uint8_t *msg, int size)
 {
     // read response
     int sizeRead = read(dev, msg, size);
     return sizeRead;
 }
+
+control_state_t serial::updateCoasterState()
+{
+    uint8_t msg[40];
+    msg[0] = {REQUEST_BUTTON_STATE};
+    this->sendPacket(msg, 1);
+    int sendBytes = 40;
+    int recieved = this->recvPacket(msg, 40);
+    if (msg[0] == SEND_BUTTON_STATE)
+    {
+        return msg[1];
+    }
+    return NULL;
+}
+
