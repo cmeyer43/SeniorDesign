@@ -82,10 +82,10 @@ int serial::recvPacket(uint8_t *msg, int size)
 
 uint8_t serial::updateCoasterState()
 {
-    uint8_t msg[5];
+    uint8_t msg[5] = {1};
     msg[0] = {REQUEST_BUTTON_STATE};
-    this->sendPacket(msg, 5);
-    int sendBytes = 40;
+    this->sendPacket(msg, 1);
+    int sendBytes = 5;
     int recieved = this->recvPacket(msg, 5);
     if (msg[0] == SEND_BUTTON_STATE)
     {
@@ -94,3 +94,120 @@ uint8_t serial::updateCoasterState()
     return -1;
 }
 
+int serial::requestControl()
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {REQUEST_CONTROL};
+    this->sendPacket(msg, 1);
+    int sendBytes = 5;
+    int recieved = this->recvPacket(msg, 5);
+    if (msg[0] == SEND_CONTROL)
+    {
+        return msg[1];
+    }
+    return NONE;
+}
+
+int sendCanSend(int canSend)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {SEND_CAN_SEND};
+    msg[1] = canSend;
+    this->sendPacket(msg, 2);
+    int sendBytes = 5;
+    int recieved = this->recvPacket(msg, 5);
+    if (msg[0] == RESPOND_CAN_SEND)
+    {
+        return msg[1];
+    }
+    return 0;
+}
+
+void serial::liftHillForward(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_DC_1};
+    msg[1] = pow;
+    this->sendPacket(msg, 2);
+}
+
+void serial::liftHillBackward(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_DC_1};
+    msg[1] = pow;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::liftHillStop()
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_DC_1};
+    msg[1] = 0;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::stationForward(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_DC_2};
+    msg[1] = pow;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::stationBackward(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_DC_2};
+    msg[1] = pow;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::stopStation(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_DC_2};
+    msg[1] = 0;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::releasePreStation(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_SERVO_1};
+    msg[1] = pow;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::stopPreStation()
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_SERVO_1};
+    msg[1] = 0;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::releaseRide(int pow)
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_SERVO_2};
+    msg[1] = pow;
+    this->sendPacket(msg, 2);
+    return;
+}
+
+void serial::stopRide()
+{
+    uint8_t msg[5] = {1};
+    msg[0] = {CONTROL_SERVO_2};
+    msg[1] = 0;
+    this->sendPacket(msg, 2);
+    return;
+}

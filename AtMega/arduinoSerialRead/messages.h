@@ -8,6 +8,7 @@ enum message_types_t {
     CONTROL_SERVO_2,
     CONTROL_DC_1,
     CONTROL_DC_2,
+    REQUEST_CAN_SEND,
     SEND_CAN_SEND,
     RESPOND_CAN_SEND,
     REQUEST_CONTROL,
@@ -18,5 +19,6 @@ enum {
     NONE = 0,
     FORWARD,
     BACKWARD
-} typedef control_types_t
+} typedef control_types_t;
+
 #endif
