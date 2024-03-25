@@ -6,20 +6,7 @@
 
 // Include files
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <string.h>
-#include <stdarg.h>
-#include <cstdint>
-#include <stdint.h>
 #include "serial.h"
-#include "messages.h"
 
 serial::serial(char *device)
 {
@@ -108,7 +95,7 @@ int serial::requestControl()
     return NONE;
 }
 
-int sendCanSend(int canSend)
+int serial::sendCanSend(int canSend)
 {
     uint8_t msg[5] = {1};
     msg[0] = {SEND_CAN_SEND};
@@ -167,7 +154,7 @@ void serial::stationBackward(int pow)
     return;
 }
 
-void serial::stopStation(int pow)
+void serial::stopStation()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_DC_2};

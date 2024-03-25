@@ -4,7 +4,7 @@
 #include "sensorSetup.h"
 
 /* Request a line as input. */
-struct gpiod_line_request* request_input_lines(const char *chip_path, const unsigned int *offsets, unsigned int num_lines, const char *consumer)
+struct gpiod_line_request* request_input_lines(const char *chip_path, const unsigned int *offsets, unsigned int num_lines, const char *consumer, int debounce)
 {
 	struct gpiod_request_config *req_cfg = NULL;
 	struct gpiod_line_request *request = NULL;
@@ -29,7 +29,7 @@ struct gpiod_line_request* request_input_lines(const char *chip_path, const unsi
 	/* Assume a button connecting the pin to ground, so pull it up... */
 	gpiod_line_settings_set_bias(settings, GPIOD_LINE_BIAS_PULL_UP);
 	/* ... and provide some debounce. */
-	gpiod_line_settings_set_debounce_period_us(settings, 10000);
+	gpiod_line_settings_set_debounce_period_us(settings, debounce);
 
 	line_cfg = gpiod_line_config_new();
 	if (!line_cfg)

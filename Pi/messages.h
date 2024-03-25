@@ -18,5 +18,5 @@ enum {
     NONE = 0,
     FORWARD,
     BACKWARD
-} typedef control_types_t
+} typedef control_types_t;
 #endif
