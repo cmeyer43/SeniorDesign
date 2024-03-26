@@ -18,12 +18,13 @@ unsigned int stationSensors[2] = {22,23}; // Wait on spring to be driven to hill
 brakeZone station(stationSensors, EMPTY);
 uint8_t state = STOP;
 serial ser("/dev/ttyAMA0");
+volatile int active = 1;
 
 void bz1Monitor()
 {
     while (active)
     {
-        bz1.updateInternalState()
+        liftHill.updateInternalState();
     }
 }
 
@@ -31,7 +32,7 @@ void bz2Monitor()
 {
     while (active)
     {
-        bz2.updateInternalState()
+        ride.updateInternalState();
     }
 }
 
@@ -39,7 +40,7 @@ void bz3Monitor()
 {
     while (active)
     {
-        bz3.updateInternalState()
+        preStation.updateInternalState();
     }
 }
 
@@ -47,7 +48,7 @@ void bz4Monitor()
 {
     while (active)
     {
-        bz4.updateInternalState()
+        station.updateInternalState();
     }
 }
 

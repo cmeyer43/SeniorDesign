@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <gpiod.h>
 #include <stdio.h>
+#include <mutex>
 
 
 class brakeZone
@@ -21,10 +22,11 @@ private:
     struct gpiod_edge_event_buffer *eventBuff;
     struct  gpiod_line_request *req;
     struct gpiod_edge_event *event;
-    uint8_t internalState;
-    uint8_t state;
+    volatile uint8_t internalState;
+    volatile uint8_t state;
+    int fd;
     std::mutex state_mutex;
-    std::mutex interalState_mutex;
+    std::mutex internalState_mutex;
 };
 
 #endif

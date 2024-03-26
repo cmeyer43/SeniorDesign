@@ -12,6 +12,7 @@ brakeZone::brakeZone(unsigned int *lines, uint8_t state)
 int brakeZone::init()
 {
     req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values", 100000);
+    fd = gpiod_line_request_get_fd(req);
     eventBuff =  gpiod_edge_event_buffer_new(2);
     return 0;
 }
@@ -29,6 +30,7 @@ void brakeZone::updateInternalState()
     for (int i = 0; i < ret; i++)
     {
         printf("in loop");
+        // Update this to use the fd and select statement so that we can timeout instead of infinitely blocking. We can then count timeouts and "exiting" to determine empty.
         event = gpiod_edge_event_buffer_get_event(eventBuff,i);
         if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[0])
         {
@@ -75,7 +77,7 @@ void brakeZone::updateInternalState()
     }
 }
 
-void updateState()
+void brakeZone::updateState()
 {
     internalState_mutex.lock();
     state_mutex.lock();
