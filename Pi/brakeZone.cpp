@@ -35,14 +35,17 @@ void brakeZone::updateInternalState()
         //printf("timeouts %d\n", timeouts);
         ret = 0;
         //printf("error reading edge events\n");
-        internalState_mutex.lock();
         //printf("Internal State %u, fallLast %d\n", internalState, fallLast);
         if (timeouts >= 10 && internalState == ENTERED && fallLast == 1)
         {
-            //printf("EMPTY\n");
-            internalState = EMPTY;
+            if (internalState != EMPTY)
+            {
+                internalState_mutex.lock();
+                //printf("EMPTY\n");
+                internalState = EMPTY;
+                internalState_mutex.unlock();
+            }
         }
-        internalState_mutex.unlock();
         return;
     }
     else
@@ -72,7 +75,7 @@ void brakeZone::updateInternalState()
                 }
             } else if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_FALLING_EDGE)
             {
-                if (internalState != ENTERING)
+                if (internalState != ENTERED)
                 {
                     internalState_mutex.lock();
                     internalState = ENTERED;
@@ -123,6 +126,7 @@ void brakeZone::updateState()
 uint8_t brakeZone::getState()
 {
     state_mutex.lock();
-    return state;
+    uint8_t ret = state;
     state_mutex.unlock();
+    return ret;
 }

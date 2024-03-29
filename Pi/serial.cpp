@@ -60,7 +60,7 @@ int serial::recvPacket(uint8_t *msg, int size)
 
     int sizeRead = 0;
     int stat = select(dev + 1, &rfds, NULL, NULL, &timeout);
-    if (stat > 0)
+    if (stat > 1)
     {
         sizeRead = read(dev, msg, size);
     }
@@ -88,6 +88,7 @@ int serial::requestControl()
     this->sendPacket(msg, 1);
     int sendBytes = 5;
     int recieved = this->recvPacket(msg, 5);
+    return NONE;
     if (msg[0] == SEND_CONTROL)
     {
         return msg[1];
@@ -95,15 +96,21 @@ int serial::requestControl()
     return NONE;
 }
 
+void serial::abcd()
+{
+    printf("try\n");
+    return;
+}
+
 int serial::sendCanSend(int canSend)
 {
-    uint8_t msg[5] = {1};
+    uint8_t msg[5] = {1,0,0,0,0};
     msg[0] = {SEND_CAN_SEND};
     msg[1] = canSend;
     this->sendPacket(msg, 2);
     int sendBytes = 5;
     int recieved = this->recvPacket(msg, 5);
-    if (msg[0] == RESPOND_CAN_SEND)
+    if (recieved && msg[0] == RESPOND_CAN_SEND)
     {
         return msg[1];
     }
