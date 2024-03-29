@@ -5,7 +5,7 @@ enum
 {
     AUTOMATIC = 0,
     MANUAL,
-    MAINTNENANCE,
+    MAINTENANCE,
     STOP
 };
 

@@ -6,6 +6,9 @@
 #define DC_1 4
 #define DC_2 5
 #define START_BUTTON 17
+#define FORWARD_SWITCH 18
+#define BACKWARD_SWITCH 19
+
 
 int bytesRead; // for incoming serial data
 uint8_t msg[100];
@@ -87,7 +90,7 @@ manual:
     {
       if (msg[0] == SEND_CAN_SEND)
       {
-        msg[0] = RESPOND_CAN_SEND
+        msg[0] = RESPOND_CAN_SEND;
         if (msg[1] == 1)
         {
             // Turn on Green LED
@@ -132,7 +135,7 @@ maintenance:
         msg[0] = SEND_CONTROL;
         if (digitalRead(FORWARD_SWITCH))
         {
-          msg[1] = FOARWARD;
+          msg[1] = FORWARD;
         } else if (digitalRead(BACKWARD_SWITCH))
         {
           msg[1] = BACKWARD;
@@ -158,5 +161,5 @@ maintenance:
       }
     }
 
-    goto start:
+    goto start;
 }
