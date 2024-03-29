@@ -199,3 +199,51 @@ fail:
     gpiod_chip_close(chip);
     return 0;
 }
+
+//int gpiod_edge_event_buffer_read_fd(int fd,
+//				    struct gpiod_edge_event_buffer *buffer,
+//				    size_t max_events)
+//{
+//	struct gpio_v2_line_event *curr;
+//	struct gpiod_edge_event *event;
+//	size_t i;
+//	ssize_t rd;
+//
+//	if (!buffer) {
+//		errno = EINVAL;
+//		return -1;
+//	}
+//
+//	memset(buffer->event_data, 0,
+//	       sizeof(*buffer->event_data) * buffer->capacity);
+//	memset(buffer->events, 0, sizeof(*buffer->events) * buffer->capacity);
+//
+//	if (max_events > buffer->capacity)
+//		max_events = buffer->capacity;
+//
+//	rd = read(fd, buffer->event_data,
+//		  max_events * sizeof(*buffer->event_data));
+//	if (rd < 0) {
+//		return -1;
+//	} else if ((unsigned int)rd < sizeof(*buffer->event_data)) {
+//		errno = EIO;
+//		return -1;
+//	}
+//
+//	buffer->num_events = rd / sizeof(*buffer->event_data);
+//
+//	for (i = 0; i < buffer->num_events; i++) {
+//		curr = &buffer->event_data[i];
+//		event = &buffer->events[i];
+//
+//		event->line_offset = curr->offset;
+//		event->event_type = curr->id == GPIO_V2_LINE_EVENT_RISING_EDGE ?
+//					    GPIOD_EDGE_EVENT_RISING_EDGE :
+//					    GPIOD_EDGE_EVENT_FALLING_EDGE;
+//		event->timestamp = curr->timestamp_ns;
+//		event->global_seqno = curr->seqno;
+//		event->line_seqno = curr->line_seqno;
+//	}
+//
+//	return i;
+//}

@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <thread>
 
-unsigned int liftHillSensors[2] = {16,17}; // Lift Hill
+unsigned int liftHillSensors[2] = {16,26}; // Lift Hill
 brakeZone liftHill(liftHillSensors, ENTERING);
 unsigned int rideSensors[2] = {18,19}; // Ride into First Gravity Stop
 brakeZone ride(rideSensors, ENTERING);

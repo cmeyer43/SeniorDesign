@@ -24,6 +24,8 @@ private:
     struct gpiod_edge_event *event;
     volatile uint8_t internalState;
     volatile uint8_t state;
+    int timeouts;
+    int fallLast;
     int fd;
     std::mutex state_mutex;
     std::mutex internalState_mutex;
