@@ -3,6 +3,7 @@
 #include "stateMachine.h"
 #include "serial.h"
 #include "controlFunctions.h"
+#include "udpRecieve.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -19,6 +20,17 @@ brakeZone station(stationSensors, EMPTY);
 uint8_t state = STOP;
 serial ser("/dev/ttyAMA0");
 volatile int active = 1;
+
+void handleWifi()
+{
+    udpRecieve reciever;
+    char msg[1000];
+    //char* msgPtr = msg;
+    while (active)
+    {
+        reciever.recieve(&msg[0], 1000);
+    }
+}
 
 void bz1Monitor()
 {
@@ -263,17 +275,19 @@ int main()
         return err;
     }
 
-    std::thread coasterThread(controlRollerCoaster);
-    std::thread bz1Thread(bz1Monitor);
-    std::thread bz2Thread(bz2Monitor);
-    std::thread bz3Thread(bz3Monitor);
-    std::thread bz4Thread(bz4Monitor);
+    //std::thread coasterThread(controlRollerCoaster);
+    //std::thread bz1Thread(bz1Monitor);
+    //std::thread bz2Thread(bz2Monitor);
+    //std::thread bz3Thread(bz3Monitor);
+    //std::thread bz4Thread(bz4Monitor);
+    std::thread wifiTalk(handleWifi);
 
-    coasterThread.join();
-    bz1Thread.join();
-    bz2Thread.join();
-    bz3Thread.join();
-    bz4Thread.join();
+    //coasterThread.join();
+    //bz1Thread.join();
+    //bz2Thread.join();
+    //bz3Thread.join();
+    //bz4Thread.join();
+    wifiTalk.join();
 
     return 0;
 }
