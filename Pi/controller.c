@@ -9,14 +9,16 @@
 #include <stdint.h>
 #include <thread>
 
-unsigned int liftHillSensors[2] = {16,26}; // Lift Hill
-brakeZone liftHill(liftHillSensors, ENTERING);
-unsigned int rideSensors[2] = {18,19}; // Ride into First Gravity Stop
-brakeZone ride(rideSensors, ENTERING);
-unsigned int preStationSensors[2] = {20,21}; // Second Gravity Stop
-brakeZone preStation(preStationSensors, ENTERING);
-unsigned int stationSensors[2] = {22,23}; // Wait on spring to be driven to hill.
-brakeZone station(stationSensors, EMPTY);
+unsigned int liftHillSensors[2] = {22,27}; // Lift Hill
+brakeZone liftHill(liftHillSensors, EMPTY);
+unsigned int rideSensors[2] = {18,25}; // Ride into First Gravity Stop
+//brakeZone ride(rideSensors, ENTERING);
+brakeZone ride(rideSensors, EMPTY);
+unsigned int preStationSensors[2] = {12,24}; // Second Gravity Stop
+//brakeZone preStation(preStationSensors, ENTERING);
+brakeZone preStation(preStationSensors, EMPTY);
+unsigned int stationSensors[2] = {23,7}; // Wait on spring to be driven to hill.
+brakeZone station(stationSensors, ENTERING);
 uint8_t state = STOP;
 serial ser("/dev/ttyAMA0");
 volatile int active = 1;
@@ -78,8 +80,13 @@ void controlRollerCoaster()
     {
         int sendToLiftHill = 0;
         updateBrakeZoneState();
-        state = ser.updateCoasterState();
-        state = MANUAL;
+        uint8_t tmpState;
+        tmpState = ser.updateCoasterState();
+        if (tmpState != 255)
+        {
+            state = tmpState;
+            printf("state %d\n", state);
+        }
         if (state == AUTOMATIC)
         {
             // Lift Hill
@@ -154,6 +161,7 @@ void controlRollerCoaster()
         {
             ser.requestControl();
             // Lift Hill
+            printf("liftHill %d, station %d, prestation %d, ride %d\n", liftHill.getState(), station.getState(), preStation.getState(), ride.getState());
             if (liftHill.getState() == EMPTY && station.getState() == ENTERED)
             {
                 ser.liftHillForward(255);
@@ -179,7 +187,8 @@ void controlRollerCoaster()
                 ser.stopStation();
             } else if (station.getState() == ENTERING)
             {
-                ser.stationForward(128); // Half up to roll in easy.
+                printf("station forward\n");
+                ser.stationForward(130); // Half up to roll in easy.
             } else if (station.getState() == ENTERED && liftHill.getState() == EMPTY)
             {
                 int action = ser.sendCanSend(1);
@@ -198,16 +207,16 @@ void controlRollerCoaster()
             // Pre Station
             if (preStation.getState() != EMPTY && ride.getState() == ENTERED)
             {
-                ser.releasePreStation(128); // Half for light release
+                ser.releasePreStation(145); // Half for light releas
             } else if (preStation.getState() == EMPTY)
             {
                 ser.stopPreStation();
             } else if (preStation.getState() == ENTERING)
             {
-                ser.releasePreStation(128); // Half up to roll in easy.
+                ser.releasePreStation(145); // Half up to roll in easy.
             } else if (preStation.getState() == ENTERED && station.getState() == EMPTY)
             {
-                ser.releasePreStation(128);
+                ser.releasePreStation(140);
             } else if (preStation.getState() == ENTERED)
             {
                 ser.stopPreStation();
@@ -215,16 +224,16 @@ void controlRollerCoaster()
             // Ride
             if (ride.getState() == EMPTY && liftHill.getState() == ENTERED)
             {
-                ser.releaseRide(128); // Half for light release
+                ser.releaseRide(130); // Half for light release
             } else if (ride.getState() == EMPTY)
             {
                 ser.stopRide();
             } else if (ride.getState() == ENTERING)
             {
-                ser.releaseRide(128); // Half up to roll in easy.
+                ser.releaseRide(140); // Half up to roll in easy.
             } else if (ride.getState() == ENTERED && preStation.getState() == EMPTY)
             {
-                ser.releaseRide(128);
+                ser.releaseRide(130);
             } else if (ride.getState() == ENTERED)
             {
                 ser.stopRide();
@@ -259,10 +268,11 @@ void controlRollerCoaster()
             ser.stopStation();
             ser.stopPreStation();
         }
-        printf("%d\n", state);
+        //printf("%d\n", state);
     }
 };
 
+//int main()
 int main()
 {
     int err = 0;
@@ -279,16 +289,16 @@ int main()
 
     std::thread coasterThread(controlRollerCoaster);
     std::thread bz1Thread(bz1Monitor);
-    //std::thread bz2Thread(bz2Monitor);
-    //std::thread bz3Thread(bz3Monitor);
-    //std::thread bz4Thread(bz4Monitor);
+    std::thread bz2Thread(bz2Monitor);
+    std::thread bz3Thread(bz3Monitor);
+    std::thread bz4Thread(bz4Monitor);
     //std::thread wifiTalk(handleWifi);
 
     coasterThread.join();
     bz1Thread.join();
-    //bz2Thread.join();
-    //bz3Thread.join();
-    //bz4Thread.join();
+    bz2Thread.join();
+    bz3Thread.join();
+    bz4Thread.join();
     //wifiTalk.join();
 
     return 0;
