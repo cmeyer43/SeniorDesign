@@ -13,7 +13,7 @@ brakeZone::brakeZone(unsigned int *lines, uint8_t state)
 
 int brakeZone::init()
 {
-    req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values", 10);
+    req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values", 10000);
     fd = gpiod_line_request_get_fd(req);
     eventBuff =  gpiod_edge_event_buffer_new(2);
     return 0;
@@ -27,7 +27,7 @@ void brakeZone::updateInternalState()
     FD_SET(fd, &rfds);
     struct timeval timeout;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 200000;
+    timeout.tv_usec = 2000;
     int ret = select(fd + 1, &rfds, NULL, NULL, &timeout);
     if (ret == 0 || ret == -1)
     {
@@ -36,9 +36,9 @@ void brakeZone::updateInternalState()
         ret = 0;
         //printf("error reading edge events\n");
         //printf("Internal State %u, fallLast %d\n", internalState, fallLast);
-        if (timeouts >= 10 && internalState == ENTERED && fallLast == 1)
+        if (timeouts >= 500 && internalState == ENTERED && fallLast == 1)
         {
-            if (internalState != EMPTY)
+            if (internalState == ENTERED)
             {
                 internalState_mutex.lock();
                 //printf("EMPTY\n");
@@ -68,7 +68,7 @@ void brakeZone::updateInternalState()
             fallLast = 0;
             if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_RISING_EDGE)
             {
-                if (internalState != ENTERING)
+                if (internalState == EMPTY)
                 {
                     internalState_mutex.lock();
                     internalState = ENTERING;
@@ -76,12 +76,12 @@ void brakeZone::updateInternalState()
                 }
             } else if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_FALLING_EDGE)
             {
-                if (internalState != ENTERING)
-                {
-                    internalState_mutex.lock();
-                    internalState = ENTERING;
-                    internalState_mutex.unlock();
-                }
+                //if (internalState != ENTERING)
+                //{
+                //    internalState_mutex.lock();
+                //    internalState = ENTERING;
+                //    internalState_mutex.unlock();
+                //}
             }
         } else if (gpiod_edge_event_get_line_offset((gpiod_edge_event*)event) == sensorLines[1])
         {
@@ -90,7 +90,7 @@ void brakeZone::updateInternalState()
             {
                 fallLast = 0;
                 //printf("EDGE RAISED\n");
-                if (internalState != ENTERED)
+                if (internalState == ENTERING)
                 {
                     //printf("ENTERED\n");
                     internalState_mutex.lock();
@@ -99,7 +99,10 @@ void brakeZone::updateInternalState()
                 }
             } else if (gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_FALLING_EDGE)
             {
-                fallLast = 1;
+                if (internalState == ENTERED)
+                {
+                    fallLast = 1;
+                }
                 //printf("EDGE Fall\n");
                 //if (internalState != EMPTY)
                 //{

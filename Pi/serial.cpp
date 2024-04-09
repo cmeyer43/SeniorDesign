@@ -44,16 +44,20 @@ int serial::sendPacket(uint8_t *msg, int size)
     uint8_t stop[1] = {0x7d};
     if (write(dev,start,1) != 1)
     {
+        exit(3);
         return 1;
     }
     if (write(dev,msg,size) != size)
     {
+        exit(2);
         return 1;
     }
     if (write(dev,stop,1) != 1)
     {
+        exit(1);
         return 1;
     }
+    ioctl(dev,TCFLSH,1);
     return 0;
 }
 
@@ -65,14 +69,15 @@ int serial::recvPacket(uint8_t *msg, int size)
     FD_SET(dev, &rfds);
 
     struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 10000;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 50000;
 
     int sizeRead = 0;
     int stat = select(dev + 1, &rfds, NULL, NULL, &timeout);
     if (stat > 0)
     {
         sizeRead = read(dev, msg, size);
+        ioctl(dev,TCFLSH,0);
     }
     return sizeRead;
 }
@@ -192,7 +197,7 @@ void serial::stopPreStation()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_SERVO_1};
-    msg[1] = 160;
+    msg[1] = 130;
     this->sendPacket(msg, 2);
     return;
 }
@@ -210,7 +215,7 @@ void serial::stopRide()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_SERVO_2};
-    msg[1] = 180;
+    msg[1] = 160;
     this->sendPacket(msg, 2);
     return;
 }

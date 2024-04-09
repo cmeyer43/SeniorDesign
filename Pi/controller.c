@@ -10,15 +10,15 @@
 #include <thread>
 
 unsigned int liftHillSensors[2] = {22,27}; // Lift Hill
-brakeZone liftHill(liftHillSensors, EMPTY);
-unsigned int rideSensors[2] = {18,25}; // Ride into First Gravity Stop
+brakeZone liftHill(liftHillSensors, ENTERING);
+unsigned int rideSensors[2] = {17,25}; // Ride into First Gravity Stop
 //brakeZone ride(rideSensors, ENTERING);
-brakeZone ride(rideSensors, EMPTY);
-unsigned int preStationSensors[2] = {17,24}; // Second Gravity Stop
+brakeZone ride(rideSensors, ENTERED);
+unsigned int preStationSensors[2] = {12,24}; // Second Gravity Stop
 //brakeZone preStation(preStationSensors, ENTERING);
 brakeZone preStation(preStationSensors, EMPTY);
 unsigned int stationSensors[2] = {23,7}; // Wait on spring to be driven to hill.
-brakeZone station(stationSensors, ENTERING);
+brakeZone station(stationSensors, ENTERED);
 uint8_t state = STOP;
 uint8_t release_go = 0;
 serial ser("/dev/ttyAMA0");
@@ -91,6 +91,7 @@ void controlRollerCoaster()
         if (state == AUTOMATIC)
         {
             // Lift Hill
+            printf(" AUTO liftHill %d, station %d, prestation %d, ride %d\n", liftHill.getState(), station.getState(), preStation.getState(), ride.getState());
             if (liftHill.getState() == EMPTY && station.getState() == ENTERED)
             {
                 ser.liftHillForward(255);
@@ -106,9 +107,12 @@ void controlRollerCoaster()
             } else if (liftHill.getState() == ENTERED && ride.getState() != EMPTY)
             {
                 ser.liftHillStop();
+            } else
+            {
+                ser.liftHillStop();
             }
             // Station
-            if (station.getState() != ENTERED && preStation.getState() == ENTERED)
+            if (station.getState() == EMPTY && preStation.getState() == ENTERED)
             {
                 ser.stationForward(128);
             } else if (station.getState() == EMPTY)
@@ -120,23 +124,32 @@ void controlRollerCoaster()
             } else if (station.getState() == ENTERED && liftHill.getState() == EMPTY)
             {
                 ser.stationForward(128);
+            } else if (station.getState() == ENTERED)
+            {
+                release_go = 0;
+                ser.stationForward(0);
             } else if (liftHill.getState() != EMPTY)
             {
+                release_go = 0;
+                ser.stopStation();
+            } else
+            {
+                release_go = 0;
                 ser.stopStation();
             }
             // Pre Station
             if (preStation.getState() == EMPTY && ride.getState() == ENTERED)
             {
-                ser.releasePreStation(128); // Half for light release
+                ser.releasePreStation(130); // Move Forward
             } else if (preStation.getState() == EMPTY)
             {
                 ser.stopPreStation();
             } else if (preStation.getState() == ENTERING)
             {
-                ser.releasePreStation(128); // Half up to roll in easy.
+                ser.releasePreStation(130); //  START STOP
             } else if (preStation.getState() == ENTERED && station.getState() == EMPTY)
             {
-                ser.releasePreStation(128);
+                ser.releasePreStation(220); // MOVE FORWARD
             } else if (preStation.getState() == ENTERED)
             {
                 ser.stopPreStation();
@@ -144,26 +157,25 @@ void controlRollerCoaster()
             // Ride
             if (ride.getState() == EMPTY && liftHill.getState() == ENTERED)
             {
-                ser.releaseRide(128); // Half for light release
+                ser.releaseRide(120); // MOVE FORWARD
             } else if (ride.getState() == EMPTY)
             {
                 ser.stopRide();
             } else if (ride.getState() == ENTERING)
             {
-                ser.releaseRide(128); // Half up to roll in easy.
+                ser.releaseRide(160); // STOP
             } else if (ride.getState() == ENTERED && preStation.getState() == EMPTY)
             {
-                ser.releaseRide(128);
+                ser.releaseRide(120); // MOVE FORWARD
             } else if (ride.getState() == ENTERED)
             {
-                ser.stopRide();
+                ser.stopRide(); // STOP
             }
         } else if (state == MANUAL)
         {
-            ser.requestControl();
             // Lift Hill
             printf("liftHill %d, station %d, prestation %d, ride %d\n", liftHill.getState(), station.getState(), preStation.getState(), ride.getState());
-            if (liftHill.getState() == EMPTY && station.getState() == ENTERED)
+            if (liftHill.getState() == EMPTY && station.getState() == ENTERED && release_go)
             {
                 ser.liftHillForward(255);
             } else if (liftHill.getState() == EMPTY)
@@ -178,9 +190,12 @@ void controlRollerCoaster()
             } else if (liftHill.getState() == ENTERED && ride.getState() != EMPTY)
             {
                 ser.liftHillStop();
+            } else
+            {
+                ser.liftHillStop();
             }
             // Station
-            if (station.getState() != EMPTY && preStation.getState() == ENTERED)
+            if (station.getState() == EMPTY && preStation.getState() == ENTERED)
             {
                 ser.stationForward(128);
             } else if (station.getState() == EMPTY)
@@ -195,34 +210,42 @@ void controlRollerCoaster()
                 {
                     release_go = ser.sendCanSend(1);
                 }
+
                 if (release_go)
                 {
+                    //printf("release go\n");
                     ser.stationForward(128);
                 } else
                 {
+                    //printf("no go\n");
                     ser.stopStation();
                 }
-            } else if (station.getState() == ENTERED && liftHill.getState() == ENTERING)
+            } else if (station.getState() == ENTERED)
             {
                 release_go = 0;
-                ser.stationForward(128);
+                ser.stationForward(0);
             } else if (liftHill.getState() != EMPTY)
             {
+                release_go = 0;
+                ser.stopStation();
+            } else
+            {
+                release_go = 0;
                 ser.stopStation();
             }
             // Pre Station
-            if (preStation.getState() != EMPTY && ride.getState() == ENTERED)
+            if (preStation.getState() == EMPTY && ride.getState() == ENTERED)
             {
-                ser.releasePreStation(155); // Half for light releas
+                ser.releasePreStation(130); // Move Forward
             } else if (preStation.getState() == EMPTY)
             {
                 ser.stopPreStation();
             } else if (preStation.getState() == ENTERING)
             {
-                ser.releasePreStation(155); // Half up to roll in easy.
+                ser.releasePreStation(130); //  START STOP
             } else if (preStation.getState() == ENTERED && station.getState() == EMPTY)
             {
-                ser.releasePreStation(150);
+                ser.releasePreStation(220); // MOVE FORWARD
             } else if (preStation.getState() == ENTERED)
             {
                 ser.stopPreStation();
@@ -230,19 +253,19 @@ void controlRollerCoaster()
             // Ride
             if (ride.getState() == EMPTY && liftHill.getState() == ENTERED)
             {
-                ser.releaseRide(170); // Half for light release
+                ser.releaseRide(120); // MOVE FORWARD
             } else if (ride.getState() == EMPTY)
             {
                 ser.stopRide();
             } else if (ride.getState() == ENTERING)
             {
-                ser.releaseRide(170); // Half up to roll in easy.
+                ser.releaseRide(160); // STOP
             } else if (ride.getState() == ENTERED && preStation.getState() == EMPTY)
             {
-                ser.releaseRide(170);
+                ser.releaseRide(120); // MOVE FORWARD
             } else if (ride.getState() == ENTERED)
             {
-                ser.stopRide();
+                ser.stopRide(); // STOP
             }
         } else if (state == MAINTENANCE)
         {
