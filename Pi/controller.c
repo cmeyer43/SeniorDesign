@@ -14,12 +14,13 @@ brakeZone liftHill(liftHillSensors, EMPTY);
 unsigned int rideSensors[2] = {18,25}; // Ride into First Gravity Stop
 //brakeZone ride(rideSensors, ENTERING);
 brakeZone ride(rideSensors, EMPTY);
-unsigned int preStationSensors[2] = {12,24}; // Second Gravity Stop
+unsigned int preStationSensors[2] = {17,24}; // Second Gravity Stop
 //brakeZone preStation(preStationSensors, ENTERING);
 brakeZone preStation(preStationSensors, EMPTY);
 unsigned int stationSensors[2] = {23,7}; // Wait on spring to be driven to hill.
 brakeZone station(stationSensors, ENTERING);
 uint8_t state = STOP;
+uint8_t release_go = 0;
 serial ser("/dev/ttyAMA0");
 volatile int active = 1;
 
@@ -187,19 +188,24 @@ void controlRollerCoaster()
                 ser.stopStation();
             } else if (station.getState() == ENTERING)
             {
-                printf("station forward\n");
-                ser.stationForward(130); // Half up to roll in easy.
+                ser.stationForward(128); // Half up to roll in easy.
             } else if (station.getState() == ENTERED && liftHill.getState() == EMPTY)
             {
-                int action = ser.sendCanSend(1);
-                if (action)
+                if (!release_go)
+                {
+                    release_go = ser.sendCanSend(1);
+                }
+                if (release_go)
                 {
                     ser.stationForward(128);
-                    ser.sendCanSend(0);
                 } else
                 {
                     ser.stopStation();
                 }
+            } else if (station.getState() == ENTERED && liftHill.getState() == ENTERING)
+            {
+                release_go = 0;
+                ser.stationForward(128);
             } else if (liftHill.getState() != EMPTY)
             {
                 ser.stopStation();
@@ -207,16 +213,16 @@ void controlRollerCoaster()
             // Pre Station
             if (preStation.getState() != EMPTY && ride.getState() == ENTERED)
             {
-                ser.releasePreStation(145); // Half for light releas
+                ser.releasePreStation(155); // Half for light releas
             } else if (preStation.getState() == EMPTY)
             {
                 ser.stopPreStation();
             } else if (preStation.getState() == ENTERING)
             {
-                ser.releasePreStation(145); // Half up to roll in easy.
+                ser.releasePreStation(155); // Half up to roll in easy.
             } else if (preStation.getState() == ENTERED && station.getState() == EMPTY)
             {
-                ser.releasePreStation(140);
+                ser.releasePreStation(150);
             } else if (preStation.getState() == ENTERED)
             {
                 ser.stopPreStation();
@@ -224,16 +230,16 @@ void controlRollerCoaster()
             // Ride
             if (ride.getState() == EMPTY && liftHill.getState() == ENTERED)
             {
-                ser.releaseRide(130); // Half for light release
+                ser.releaseRide(170); // Half for light release
             } else if (ride.getState() == EMPTY)
             {
                 ser.stopRide();
             } else if (ride.getState() == ENTERING)
             {
-                ser.releaseRide(140); // Half up to roll in easy.
+                ser.releaseRide(170); // Half up to roll in easy.
             } else if (ride.getState() == ENTERED && preStation.getState() == EMPTY)
             {
-                ser.releaseRide(130);
+                ser.releaseRide(170);
             } else if (ride.getState() == ENTERED)
             {
                 ser.stopRide();
@@ -243,8 +249,8 @@ void controlRollerCoaster()
             int action = requestControl();
             if (action == 1) // Forward
             {
-                ser.releaseRide(255);
-                ser.releasePreStation(255);
+                ser.releaseRide(0);
+                ser.releasePreStation(0);
                 ser.stationForward(255);
                 ser.liftHillForward(255);
             } else if (action == 2) // Stop

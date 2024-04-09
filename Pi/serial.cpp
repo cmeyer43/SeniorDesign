@@ -192,7 +192,7 @@ void serial::stopPreStation()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_SERVO_1};
-    msg[1] = 0;
+    msg[1] = 160;
     this->sendPacket(msg, 2);
     return;
 }
@@ -210,7 +210,7 @@ void serial::stopRide()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_SERVO_2};
-    msg[1] = 170;
+    msg[1] = 180;
     this->sendPacket(msg, 2);
     return;
 }

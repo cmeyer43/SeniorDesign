@@ -13,7 +13,7 @@ brakeZone::brakeZone(unsigned int *lines, uint8_t state)
 
 int brakeZone::init()
 {
-    req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values", 10000);
+    req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values", 10);
     fd = gpiod_line_request_get_fd(req);
     eventBuff =  gpiod_edge_event_buffer_new(2);
     return 0;
