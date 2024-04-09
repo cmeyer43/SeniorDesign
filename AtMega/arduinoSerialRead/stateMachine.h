@@ -13,7 +13,6 @@ enum
 {
     ENTERING = 0,
     ENTERED,
-    EXITING,
     EMPTY
 };
 
