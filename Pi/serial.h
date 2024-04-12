@@ -23,6 +23,8 @@ public:
 
     ~serial();
 
+    void abcd();
+
     int sendPacket(uint8_t* packet, int size);
 
     int recvPacket(uint8_t* packet, int size);
@@ -45,6 +47,7 @@ public:
 
     void releaseRide(int pow);
     void stopRide();
+
 
 private:
     int dev;
