@@ -13,12 +13,12 @@ unsigned int liftHillSensors[2] = {22,27}; // Lift Hill
 brakeZone liftHill(liftHillSensors, ENTERING);
 unsigned int rideSensors[2] = {17,25}; // Ride into First Gravity Stop
 //brakeZone ride(rideSensors, ENTERING);
-brakeZone ride(rideSensors, ENTERED);
+brakeZone ride(rideSensors, EMPTY);
 unsigned int preStationSensors[2] = {12,24}; // Second Gravity Stop
 //brakeZone preStation(preStationSensors, ENTERING);
 brakeZone preStation(preStationSensors, EMPTY);
 unsigned int stationSensors[2] = {23,7}; // Wait on spring to be driven to hill.
-brakeZone station(stationSensors, ENTERED);
+brakeZone station(stationSensors, EMPTY);
 uint8_t state = STOP;
 uint8_t release_go = 0;
 serial ser("/dev/ttyAMA0");
@@ -88,6 +88,7 @@ void controlRollerCoaster()
             state = tmpState;
             printf("state %d\n", state);
         }
+        printf("liftHill %d, station %d, prestation %d, ride %d\n", liftHill.getState(), station.getState(), preStation.getState(), ride.getState());
         if (state == AUTOMATIC)
         {
             // Lift Hill
@@ -174,7 +175,6 @@ void controlRollerCoaster()
         } else if (state == MANUAL)
         {
             // Lift Hill
-            printf("liftHill %d, station %d, prestation %d, ride %d\n", liftHill.getState(), station.getState(), preStation.getState(), ride.getState());
             if (liftHill.getState() == EMPTY && station.getState() == ENTERED && release_go)
             {
                 ser.liftHillForward(255);
@@ -269,35 +269,88 @@ void controlRollerCoaster()
             }
         } else if (state == MAINTENANCE)
         {
-            int action = requestControl();
-            if (action == 1) // Forward
-            {
-                ser.releaseRide(0);
-                ser.releasePreStation(0);
-                ser.stationForward(255);
-                ser.liftHillForward(255);
-            } else if (action == 2) // Stop
-            {
-                ser.stopRide();
-                ser.stopPreStation();
-                ser.stopStation();
-                ser.liftHillStop();
-
-            } else if (action == 3) // Backwards
-            {
-                ser.releaseRide(255);
-                ser.releasePreStation(255);
-                ser.stationBackward(255);
-                ser.liftHillBackward(255);
-            }
+            // Arduino handles this its just simpler
+            continue;
         } else if (state == STOP)
         {
+            // Lift Hill
             ser.liftHillStop();
-            ser.stopRide();
+            // Station
             ser.stopStation();
-            ser.stopPreStation();
+            release_go = 0;
+            // Pre Station
+            if (preStation.getState() == EMPTY)
+            {
+                ser.stopPreStation();
+            } else if (preStation.getState() == EMPTY)
+            {
+                ser.stopPreStation();
+            } else if (preStation.getState() == ENTERING)
+            {
+                ser.releasePreStation(130); //  START STOP
+            }
+            // Ride
+            if (ride.getState() == EMPTY)
+            {
+                ser.stopRide(); // MOVE FORWARD
+            } else if (ride.getState() == EMPTY)
+            {
+                ser.stopRide();
+            } else if (ride.getState() == ENTERING)
+            {
+                ser.releaseRide(160); // STOP
+            }
+        } else if (state == RETURN_TO_SAFE)
+        {
+            // Lift Hill
+            if (liftHill.getState() == EMPTY)
+            {
+                ser.liftHillStop();
+            } else if (liftHill.getState() == ENTERING)
+            {
+                ser.liftHillForward(255);
+            } else if (liftHill.getState() == ENTERED)
+            {
+                ser.liftHillStop();
+            }
+            // Station
+            if (station.getState() == EMPTY)
+            {
+                ser.stopStation();
+            } else if (station.getState() == EMPTY)
+            {
+                ser.stopStation();
+            } else if (station.getState() == ENTERING)
+            {
+                ser.stationForward(128); // Half up to roll in easy.
+            } else if (station.getState() == ENTERED)
+            {
+                release_go = 0;
+                ser.stationForward(0);
+            }
+            // Pre Station
+            if (preStation.getState() == EMPTY)
+            {
+                ser.stopPreStation();
+            } else if (preStation.getState() == EMPTY)
+            {
+                ser.stopPreStation();
+            } else if (preStation.getState() == ENTERING)
+            {
+                ser.releasePreStation(130); //  START STOP
+            }
+            // Ride
+            if (ride.getState() == EMPTY)
+            {
+                ser.stopRide(); // MOVE FORWARD
+            } else if (ride.getState() == EMPTY)
+            {
+                ser.stopRide();
+            } else if (ride.getState() == ENTERING)
+            {
+                ser.releaseRide(160); // STOP
+            }
         }
-        //printf("%d\n", state);
     }
 };
 
