@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include "Wire.h"  // This library allows you to communicate with I2C devices.
+#define TRAIN 0
 
 
 // network SSID (network name). and network password.
@@ -49,21 +50,15 @@ void setup() {
   while (!Serial)
     ;
   delay(1000);
-  Serial.println();
-  Serial.println("ESP32 WiFi UDP client - send UDP datagrams to server");
+  //Serial.println();
+  //Serial.println("ESP32 WiFi UDP client - send UDP datagrams to server");
   WiFi.mode(WIFI_STA);  // Connect to Wifi network.
   WiFi.begin(ssid, pass);
-  Serial.println("");
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
   }
-  Serial.print("\nserver IP address: ");
-  Serial.println(udpServer);
   udp.begin(UDP_PORT);
-  Serial.print("server udp port ");
-  Serial.println(UDP_PORT);
   Wire.begin();
   Wire.beginTransmission(MPU_ADDR);  // Begins a transmission to the I2C slave (GY-521 board)
   Wire.write(0x6B);                  // PWR_MGMT_1 register
@@ -72,17 +67,36 @@ void setup() {
 }
 
 void loop() {
+
+  if (Wifi.status() != WL_CONNECTED)
+  {
+    WiFi.mode(WIFI_STA);  // Connect to Wifi network.
+    WiFi.begin(ssid, pass);
+    // Wait for connection
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+    }
+    udp.begin(UDP_PORT);
+    Wire.begin();
+    Wire.beginTransmission(MPU_ADDR);  // Begins a transmission to the I2C slave (GY-521 board)
+    Wire.write(0x6B);                  // PWR_MGMT_1 register
+    Wire.write(0);                     // set to zero (wakes up the MPU-6050)
+    Wire.endTransmission(true);
+  }
+
   // Send Packet to UDP server
+
   readIMU();
-  dataPacket[0] = accelerometer_x;
-  dataPacket[1] = accelerometer_y;
-  dataPacket[2] = accelerometer_z;
-  dataPacket[3] = gyro_x;
-  dataPacket[4] = gyro_y;
-  dataPacket[5] = gyro_z;
+  dataPacket[0] = TRAIN;
+  dataPacket[1] = accelerometer_x;
+  dataPacket[2] = accelerometer_y;
+  dataPacket[3] = accelerometer_z;
+  dataPacket[4] = gyro_x;
+  dataPacket[5] = gyro_y;
+  dataPacket[6] = gyro_z;
 
   snprintf(msg, 100, "hello world %d", i);
-  printf("%s\n", msg);
+  //printf("%s\n", msg);
 
   udp.beginPacket(udpServer.toString().c_str(), UDP_PORT);
   int len = udp.write((const uint8_t*)dataPacket, 12);
@@ -115,20 +129,20 @@ void readIMU() {
   gyro_z = Wire.read() << 8 | Wire.read();           // reading registers: 0x47 (GYRO_ZOUT_H) and 0x48 (GYRO_ZOUT_L)
 
   // print out data
-  Serial.print("aX = ");
-  Serial.print(convert_int16_to_str(accelerometer_x));
-  Serial.print(" | aY = ");
-  Serial.print(convert_int16_to_str(accelerometer_y));
-  Serial.print(" | aZ = ");
-  Serial.print(convert_int16_to_str(accelerometer_z));
-  // the following equation was taken from the documentation [MPU-6000/MPU-6050 Register Map and Description, p.30]
-  Serial.print(" | tmp = ");
-  Serial.print(temperature / 340.00 + 36.53);
-  Serial.print(" | gX = ");
-  Serial.print(convert_int16_to_str(gyro_x));
-  Serial.print(" | gY = ");
-  Serial.print(convert_int16_to_str(gyro_y));
-  Serial.print(" | gZ = ");
-  Serial.print(convert_int16_to_str(gyro_z));
-  Serial.println();
+  //Serial.print("aX = ");
+  //Serial.print(convert_int16_to_str(accelerometer_x));
+  //Serial.print(" | aY = ");
+  //Serial.print(convert_int16_to_str(accelerometer_y));
+  //Serial.print(" | aZ = ");
+  //Serial.print(convert_int16_to_str(accelerometer_z));
+  //// the following equation was taken from the documentation [MPU-6000/MPU-6050 Register Map and Description, p.30]
+  //Serial.print(" | tmp = ");
+  //Serial.print(temperature / 340.00 + 36.53);
+  //Serial.print(" | gX = ");
+  //Serial.print(convert_int16_to_str(gyro_x));
+  //Serial.print(" | gY = ");
+  //Serial.print(convert_int16_to_str(gyro_y));
+  //Serial.print(" | gZ = ");
+  //Serial.print(convert_int16_to_str(gyro_z));
+  //Serial.println();
 }
