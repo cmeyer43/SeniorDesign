@@ -5,7 +5,7 @@ enum
 {
     AUTOMATIC = 0,
     MANUAL,
-    MAINTNENANCE,
+    MAINTENANCE,
     STOP
 };
 
@@ -13,7 +13,6 @@ enum
 {
     ENTERING = 0,
     ENTERED,
-    EXITING,
     EMPTY
 };
 

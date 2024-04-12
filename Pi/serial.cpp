@@ -6,24 +6,11 @@
 
 // Include files
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <string.h>
-#include <stdarg.h>
-#include <cstdint>
-#include <stdint.h>
 #include "serial.h"
-#include "messages.h"
 
 serial::serial(char *device)
 {
-    dev = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY);
+    dev = open(device, O_RDWR | O_NOCTTY);
     if(dev < 0)
     {
       printf("failed to open\n");
@@ -53,13 +40,9 @@ serial::~serial()
   
 int serial::sendPacket(uint8_t *msg, int size)
 {
-    while(1)
+    if (write(dev,msg,1) != size)
     {
-        printf("send\n");
-        if (write(dev,msg,1) != size)
-        {
-            return 1;
-        }
+        return 1;
     }
     return 0;
 }
@@ -112,7 +95,7 @@ int serial::requestControl()
     return NONE;
 }
 
-int sendCanSend(int canSend)
+int serial::sendCanSend(int canSend)
 {
     uint8_t msg[5] = {1};
     msg[0] = {SEND_CAN_SEND};
@@ -171,7 +154,7 @@ void serial::stationBackward(int pow)
     return;
 }
 
-void serial::stopStation(int pow)
+void serial::stopStation()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_DC_2};
