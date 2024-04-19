@@ -79,7 +79,7 @@ static struct gpiod_line_request *request_input_line(struct gpiod_chip* chip,
     settings = gpiod_line_settings_new();
     if (!settings)
     {
-        printf("failed settings");
+        //printf("failed settings");
         goto free_settings;
     }
 
@@ -90,7 +90,7 @@ static struct gpiod_line_request *request_input_line(struct gpiod_chip* chip,
     line_cfg = gpiod_line_config_new();
     if (!line_cfg)
     {
-        printf("failed line config");
+        //printf("failed line config");
         goto free_line_config;
     }
 
@@ -98,7 +98,7 @@ static struct gpiod_line_request *request_input_line(struct gpiod_chip* chip,
 
     if (ret)
     {
-        printf("failed add settings");
+        //printf("failed add settings");
         goto free_line_config;
     }
 
@@ -107,7 +107,7 @@ static struct gpiod_line_request *request_input_line(struct gpiod_chip* chip,
         req_cfg = gpiod_request_config_new();
         if (!req_cfg)
         {
-            printf("failed request config");
+            //printf("failed request config");
             goto free_line_config;
         }
         gpiod_request_config_set_consumer(req_cfg, consumer);
@@ -143,13 +143,13 @@ int setupIRsensor(struct gpiod_line_request *request, struct gpiod_edge_event_bu
     chip = gpiod_chip_open(chip_path);
     if (!chip)
     {
-        printf("fail\n");
+        //printf("fail\n");
         return 1;
     }
     info = gpiod_chip_get_info(chip);
     if (!info)
     {
-        printf("fail info\n");
+        //printf("fail info\n");
     }
 
     //printf("%s, [%s] (%zu lines)\n", gpiod_chip_info_get_name(info),
@@ -158,7 +158,7 @@ int setupIRsensor(struct gpiod_line_request *request, struct gpiod_edge_event_bu
     request = request_input_line(chip, line_offset, "watch-line-value");
     if (!request)
     {
-        printf("failed request");
+        //printf("failed request");
         goto fail;
     }
 
@@ -166,7 +166,7 @@ int setupIRsensor(struct gpiod_line_request *request, struct gpiod_edge_event_bu
     event_buffer = gpiod_edge_event_buffer_new(event_buf_size);
     if (!event_buffer)
     {
-        printf("failed event buffer");
+        //printf("failed event buffer");
         goto fail;
     }
     

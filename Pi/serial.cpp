@@ -13,7 +13,7 @@ serial::serial(char *device)
     dev = open(device, O_RDWR | O_NOCTTY);
     if(dev < 0)
     {
-      printf("failed to open\n");
+      //printf("failed to open\n");
     }
 
     // Set attributes
@@ -113,7 +113,6 @@ int serial::requestControl()
 
 int serial::sendCanSend(int canSend)
 {
-    printf("can send\n");
     uint8_t msg[5] = {1,0,0,0,0};
     msg[0] = {SEND_CAN_SEND};
     msg[1] = (uint8_t) canSend;
@@ -197,7 +196,7 @@ void serial::stopPreStation()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_SERVO_1};
-    msg[1] = 130;
+    msg[1] = PRESTATION_STOP;
     this->sendPacket(msg, 2);
     return;
 }
@@ -215,7 +214,7 @@ void serial::stopRide()
 {
     uint8_t msg[5] = {1};
     msg[0] = {CONTROL_SERVO_2};
-    msg[1] = 160;
+    msg[1] = RIDE_STOP;
     this->sendPacket(msg, 2);
     return;
 }

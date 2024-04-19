@@ -14,10 +14,10 @@ udpRecieve::udpRecieve(void)
                             
     if(socket_desc < 0)
     {
-        printf("Error while creating socket\n");
+        //printf("Error while creating socket\n");
         return;
     }
-    printf("Socket created successfully\n");
+    //printf("Socket created successfully\n");
                                                              
     // Set port and IP:
     server_addr.sin_family = AF_INET;
@@ -28,10 +28,10 @@ udpRecieve::udpRecieve(void)
     int b = (bind(socket_desc, (struct sockaddr*)&server_addr, sizeof(server_addr)));
     if(b < 0)
     {
-        printf("Couldn't bind to the port %d, %s\n", b, strerror(errno));
+        //printf("Couldn't bind to the port %d, %s\n", b, strerror(errno));
         return;
     }
-    printf("UDP port created successfully\n");
+    //printf("UDP port created successfully\n");
     
 }
 
@@ -82,7 +82,7 @@ int udpRecieve::respond(uint8_t* msg, int len)
     if (sendto(socket_desc, msg, len, 0,
             (struct sockaddr*)&client_addr, client_struct_length) < 0)
     {
-         printf("Can't send\n");
+         //printf("Can't send\n");
          return -1;
     }
     return 1;

@@ -16,6 +16,11 @@
 #include "messages.h"
 #include "stateMachine.h"
 
+#define PRESTATION_STOP 140
+#define PRESTATION_GO 180
+#define RIDE_STOP 185
+#define RIDE_GO 250
+
 class serial
 {
 public:

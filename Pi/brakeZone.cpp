@@ -13,9 +13,28 @@ brakeZone::brakeZone(unsigned int *lines, uint8_t state)
 
 int brakeZone::init()
 {
+    //req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "get_multiple-line-values", 10000);
+    //gpiod_line_value vals[2];
+    //int ret = 0;
+    //ret = gpiod_line_request_get_values(req, vals);
+    //for (int i = 0; i < 2; i++)
+    //{
+    //    printf("%d value", vals[i]);
+    //    if (vals[i] == 1 && i == 0)
+    //    {
+    //        internalState = ENTERING;
+    //        state = ENTERING;
+    //    }
+    //    if (vals[i] == 1 && i == 1)
+    //    {
+    //        internalState = ENTERED;
+    //        state = ENTERED;
+    //    }
+    //}
     req = request_input_lines("/dev/gpiochip0", sensorLines , 2, "watch-multiple-line-values", 10000);
     fd = gpiod_line_request_get_fd(req);
     eventBuff =  gpiod_edge_event_buffer_new(2);
+    int val = gpiod_line_request_get_value(req, sensorLines[0]);
     return 0;
 }
 
