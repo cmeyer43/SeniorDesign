@@ -5,7 +5,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include "Wire.h"  // This library allows you to communicate with I2C devices.
-#define TRAIN 0
+#define TRAIN 1
 
 
 // network SSID (network name). and network password.
@@ -33,7 +33,7 @@ int16_t gyro_x, gyro_y, gyro_z;                             // variables for gyr
 int16_t temperature;                                        // variables for temperature data
 
 char tmp_str[7];  // temporary variable used in convert function
-uint16_t dataPacket[6];
+uint16_t dataPacket[7];
 
 // UDP Datagram
 struct __attribute__((packed)) UDPDatagram {
@@ -68,21 +68,21 @@ void setup() {
 
 void loop() {
 
-  if (Wifi.status() != WL_CONNECTED)
-  {
-    WiFi.mode(WIFI_STA);  // Connect to Wifi network.
-    WiFi.begin(ssid, pass);
-    // Wait for connection
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-    }
-    udp.begin(UDP_PORT);
-    Wire.begin();
-    Wire.beginTransmission(MPU_ADDR);  // Begins a transmission to the I2C slave (GY-521 board)
-    Wire.write(0x6B);                  // PWR_MGMT_1 register
-    Wire.write(0);                     // set to zero (wakes up the MPU-6050)
-    Wire.endTransmission(true);
-  }
+  // if (Wifi.status() != WL_CONNECTED)
+  // {
+  //   WiFi.mode(WIFI_STA);  // Connect to Wifi network.
+  //   WiFi.begin(ssid, pass);
+  //   // Wait for connection
+  //   while (WiFi.status() != WL_CONNECTED) {
+  //     delay(500);
+  //   }
+  //   udp.begin(UDP_PORT);
+  //   Wire.begin();
+  //   Wire.beginTransmission(MPU_ADDR);  // Begins a transmission to the I2C slave (GY-521 board)
+  //   Wire.write(0x6B);                  // PWR_MGMT_1 register
+  //   Wire.write(0);                     // set to zero (wakes up the MPU-6050)
+  //   Wire.endTransmission(true);
+  // }
 
   // Send Packet to UDP server
 
@@ -99,11 +99,11 @@ void loop() {
   //printf("%s\n", msg);
 
   udp.beginPacket(udpServer.toString().c_str(), UDP_PORT);
-  int len = udp.write((const uint8_t*)dataPacket, 12);
+  int len = udp.write((const uint8_t*)dataPacket, 14);
   udp.endPacket();
   i++;
 
-  delay(1000);
+  delay(100);
 }
 
 

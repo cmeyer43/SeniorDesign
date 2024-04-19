@@ -40,6 +40,7 @@ uint8_t newMsg = 0;
 uint8_t state;
 uint8_t canSend;
 uint8_t toggleState = 0;
+uint8_t toggleStateStartingLEDS = 0;
 int checkoutBlinking = 0;
 int returnToSafe = 1;
 int toggleStartBlinking = 0;
@@ -100,10 +101,10 @@ void setup() {
   pinMode(SERVO_RIDE_2, OUTPUT);
   pinMode(DC_STATION, OUTPUT);
   pinMode(DC_HILL, OUTPUT);
-  analogWrite(SERVO_PRESTATION_1, 130);
-  analogWrite(SERVO_PRESTATION_2, 130);
-  analogWrite(SERVO_RIDE_1, 160);
-  analogWrite(SERVO_RIDE_2, 160);
+  analogWrite(SERVO_PRESTATION_1, 140);
+  analogWrite(SERVO_PRESTATION_2, 140);
+  analogWrite(SERVO_RIDE_1, 185);
+  analogWrite(SERVO_RIDE_2, 185);
   analogWrite(DC_STATION, 0);
   analogWrite(DC_HILL, 0);
   pinMode(RIDE_START_LED, OUTPUT);
@@ -169,14 +170,14 @@ void toggleCheckoutLeds()
 
 void toggleStartLeds()
 {
-  if (toggleState)
+  if (toggleStateStartingLEDS)
   {
     digitalWrite(RIDE_START_LED, HIGH);
   } else
   {
     digitalWrite(RIDE_START_LED, LOW);
   }
-  toggleState = !toggleState;
+  toggleStateStartingLEDS = !toggleStateStartingLEDS;
 }
 
 
@@ -317,23 +318,24 @@ void hillBackwardB()
 void loop()
 {
 // test:
-//   toggleStart.update();
-//   // digitalWrite(ESTOP_LED, digitalRead(IGNITION_SWITCH));
-//   // Serial.println(digitalRead(ESTOP));
-//   stationForwardA();
-//   analogWrite(DC_STATION, 255);
-//   hillForwardB();
-//   analogWrite(DC_HILL, 255);
-//   if (digitalRead(ESTOP))
-//   {
-//     emergencyStop();
-//   }
-//   analogWrite(SERVO_PRESTATION_1, 120); // control servo 1
-//   analogWrite(SERVO_PRESTATION_2, 120);
+//   // toggleStart.update();
+//   // // digitalWrite(ESTOP_LED, digitalRead(IGNITION_SWITCH));
+//   // // Serial.println(digitalRead(ESTOP));
+//   // stationForwardA();
+//   // analogWrite(DC_STATION, 255);
+//   // hillForwardB();
+//   // analogWrite(DC_HILL, 255);
+//   // if (digitalRead(ESTOP))
+//   // {
+//   //   emergencyStop();
+//   // }
+//   Serial.println("test");
+//   analogWrite(SERVO_PRESTATION_1, 143); // control servo 1
+//   analogWrite(SERVO_PRESTATION_2, 143);
 //   // SERVO_PRESTATION 170 MAX
 //   // SERVO_PRESTATION 150 HALF
-//   analogWrite(SERVO_RIDE_1, 160);  // control servo 2
-//   analogWrite(SERVO_RIDE_2, 160);
+//   // analogWrite(SERVO_RIDE_1, 180);  // control servo 2
+//   // analogWrite(SERVO_RIDE_2, 180);
 //   // SERVO_RIDE
 // goto test;
 start:
@@ -424,21 +426,20 @@ automatic:
         analogWrite(DC_HILL, msg[1]);
       }
     }
+    digitalWrite(RIDE_START_LED, LOW);
     newMsg = 0;
     goto start;
 
 manual:
+    toggleStart.update();
     if (newMsg)
     {
-
       if (msg[0] == SEND_CAN_SEND)
       {
         msg[0] = RESPOND_CAN_SEND;
         if (msg[1] == 1)
         {
-          toggleStart.update();
             // Turn on Green LED
-          digitalWrite(RIDE_START_LED, HIGH);
           if (!toggleStartBlinking)
           {
             toggleStartBlinking = 1;
@@ -449,6 +450,8 @@ manual:
             msg[1] = 1;
             toggleStart.pause();
             toggleStartBlinking = 0;
+            digitalWrite(RIDE_START_LED, LOW);
+
 
           } else
           {
@@ -456,8 +459,6 @@ manual:
           }
         } else
         {
-          // Turn off Green LED
-          digitalWrite(RIDE_START_LED, LOW);
           msg[1] = 0;
         }
         Serial1.write(msg, 2);
@@ -493,10 +494,16 @@ maintenance:
     {
       newMsg = 0;
     }
-    analogWrite(SERVO_RIDE_1, 220);
-    analogWrite(SERVO_RIDE_2, 220);
-    analogWrite(SERVO_PRESTATION_1, 120);
-    analogWrite(SERVO_PRESTATION_2, 120);
+    digitalWrite(RIDE_START_LED, LOW);
+    analogWrite(SERVO_RIDE_1, 250);
+    analogWrite(SERVO_RIDE_2, 250);
+    analogWrite(SERVO_PRESTATION_1, 180);
+    analogWrite(SERVO_PRESTATION_2, 180);
+    if (digitalRead(RIDE_STOP_BUTTON))
+    {
+      analogWrite(DC_STATION, 0);
+      analogWrite(DC_HILL, 0);
+    }
     if (digitalRead(LIFT_STOP_BUTTON))
     {
       if (digitalRead(STATION_SWITCH))
@@ -519,8 +526,6 @@ maintenance:
         analogWrite(DC_HILL, 255);
       }
     }
-
-
     goto start;
 getSafe:
     canSend = 0;
@@ -547,6 +552,7 @@ getSafe:
         analogWrite(DC_HILL, msg[1]);
       }
     }
+    digitalWrite(RIDE_START_LED, LOW);
     newMsg = 0;
     checkout();
     if (digitalRead(ESTOP))
@@ -579,6 +585,7 @@ stop:
         analogWrite(DC_HILL, msg[1]);
       }
     }
+    digitalWrite(RIDE_START_LED, LOW);
     newMsg = 0;
     emergencyStop();
     if (!digitalRead(IGNITION_SWITCH))
