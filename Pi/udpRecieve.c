@@ -1,71 +1,87 @@
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include "udpRecieve.h"
+#include <cerrno>
 
-//int main(void)
-//{
-//    int socket_desc;
-//    struct sockaddr_in server_addr, client_addr;
-//    char server_message[2000], client_message[2000];
-//    int client_struct_length = sizeof(client_addr);
-//    
-//    // Clean buffers:
-//    memset(server_message, '\0', sizeof(server_message));
-//    memset(client_message, '\0', sizeof(client_message));
-//                 
-//    // Create UDP socket:
-//    socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-//                            
-//    if(socket_desc < 0)
-//    {
-//        printf("Error while creating socket\n");
-//        return -1;
-//    }
-//    printf("Socket created successfully\n");
-//                                                             
-//    // Set port and IP:
-//    server_addr.sin_family = AF_INET;
-//    server_addr.sin_port = htons(3000);
-//    server_addr.sin_addr.s_addr = inet_addr("192.168.0.145");
-//    
-//    // Bind to the set port and IP:
-//    if(bind(socket_desc, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-//    {
-//        printf("Couldn't bind to the port\n");
-//        return -1;
-//    }
-//    printf("Done with binding\n");
-//    
-//    for (int i = 0; i < 10; i++)
-//    {
-//        printf("Listening for incoming messages...\n\n");
-//
-//        // Receive client's message:
-//        if (recvfrom(socket_desc, client_message, sizeof(client_message), 0,
-//                (struct sockaddr*)&client_addr, &client_struct_length) < 0)
-//        {
-//            printf("Couldn't receive\n");
-//            return -1;
-//        }
-//        printf("Received message from IP: %s and port: %i\n",
-//        inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-//        
-//        printf("Msg from client: %s\n", client_message);
-//    }
-//    
-//    //// Respond to client:
-//    //strcpy(server_message, client_message);
-//    //
-//    //if (sendto(socket_desc, server_message, strlen(server_message), 0,
-//    //        (struct sockaddr*)&client_addr, client_struct_length) < 0)
-//    //{
-//    //     printf("Can't send\n");
-//    //     return -1;
-//    //}
-//    
-//    // Close the socket:
-//    close(socket_desc);
-//    
-//     return 0;
-//}
+udpRecieve::udpRecieve(void)
+{
+    client_struct_length = sizeof(client_addr);
+    
+    // Clean buffers:
+    memset(server_message, '\0', sizeof(server_message));
+    memset(client_message, '\0', sizeof(client_message));
+                 
+    // Create UDP socket:
+    socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                            
+    if(socket_desc < 0)
+    {
+        printf("Error while creating socket\n");
+        return;
+    }
+    printf("Socket created successfully\n");
+                                                             
+    // Set port and IP:
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(3000);
+    server_addr.sin_addr.s_addr = inet_addr("10.42.0.1");
+    
+    // Bind to the set port and IP:
+    int b = (bind(socket_desc, (struct sockaddr*)&server_addr, sizeof(server_addr)));
+    if(b < 0)
+    {
+        printf("Couldn't bind to the port %d, %s\n", b, strerror(errno));
+        return;
+    }
+    printf("UDP port created successfully\n");
+    
+}
+
+udpRecieve::~udpRecieve(void)
+{
+    // Close the socket:
+    close(socket_desc);
+}
+
+int udpRecieve::recieve(char* msg, int len)
+{
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(socket_desc, &rfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 10000;
+
+    int sizeRead = 0;
+    int stat = select(socket_desc + 1, &rfds, NULL, NULL, &timeout);
+
+    if (stat > 0)
+    {
+        // Receive client's message:
+        if (recvfrom(socket_desc, msg, len, 0,
+                (struct sockaddr*)&client_addr, (socklen_t*)&client_struct_length) < 0)
+        {
+            printf("Couldn't receive\n");
+            return -1;
+        }
+        printf("Received message from IP: %s and port: %i\n",
+        inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+        
+        printf("%d,%d,%d,%d,%d,%d\n", ((int16_t*)msg)[0], ((int16_t*)msg)[1], ((int16_t*)msg)[2], ((int16_t*)msg)[3], ((int16_t*)msg)[4], ((int16_t*)msg)[5]);
+    }
+    
+    
+     return 0;
+}
+
+int udpRecieve::respond(char* msg)
+{
+    //// Respond to client:
+    
+    if (sendto(socket_desc, msg, strlen(msg), 0,
+            (struct sockaddr*)&client_addr, client_struct_length) < 0)
+    {
+         printf("Can't send\n");
+         return -1;
+    }
+    return 1;
+}
