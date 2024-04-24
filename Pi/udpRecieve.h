@@ -9,8 +9,8 @@ class udpRecieve
 public:
     udpRecieve(void);
     ~udpRecieve(void);
-    int recieve(char* msg, int len);
-    int respond(char* msg);
+    int recieve(uint8_t* msg, int len);
+    int respond(uint8_t* msg, int len);
     
 private:
     int socket_desc;
