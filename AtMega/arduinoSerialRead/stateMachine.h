@@ -6,7 +6,8 @@ enum
     AUTOMATIC = 0,
     MANUAL,
     MAINTENANCE,
-    STOP
+    STOP,
+    RETURN_TO_SAFE
 };
 
 enum
